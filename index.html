@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FxMath XAUUSD Strategies - Advanced Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --secondary: #a78bfa;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --info: #60a5fa;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            transition: all 0.3s;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+        }
+
+        .theme-toggle {
+            margin-top: auto;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .theme-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .theme-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px var(--shadow);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon.profit { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-icon.win-rate { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .stat-icon.strategies { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .stat-icon.sharpe { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-change {
+            font-size: 13px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+
+        /* Search and Filters */
+        .controls-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 20px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-primary);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-input, .filter-select {
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-primary);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .filter-tag {
+            padding: 6px 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-tag-close {
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Strategy Cards */
+        .strategies-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .strategy-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strategy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .strategy-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .strategy-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px var(--shadow);
+            transform: translateX(4px);
+        }
+
+        .strategy-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .strategy-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .strategy-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-id {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .badge-top {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .metric-box:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-value.positive { color: var(--success); }
+        .metric-value.negative { color: var(--danger); }
+
+        .strategy-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .strategy-card.expanded .strategy-details {
+            max-height: 2000px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .details-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .rules-column h4 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rule-item {
+            padding: 12px;
+            background: var(--bg-secondary);
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .rule-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(4px);
+        }
+
+        .risk-box {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+            border: 2px solid var(--warning);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .risk-box h4 {
+            color: var(--warning);
+            margin-bottom: 12px;
+            font-size: 14px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .risk-item {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .risk-item strong {
+            color: var(--warning);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .compare-checkbox {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+        }
+
+        .comparison-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border-top: 2px solid var(--border);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+            box-shadow: 0 -4px 20px var(--shadow);
+            z-index: 1000;
+        }
+
+        .comparison-bar.active {
+            transform: translateY(0);
+        }
+
+        .comparison-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+            }
+
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">FxMath</div>
+            </div>
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-title">Navigation</div>
+                    <div class="nav-item active" data-view="dashboard">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                            </svg>
+                        </span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" data-view="strategies">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </span>
+                        <span>Strategies</span>
+                    </div>
+                    <div class="nav-item" data-view="analytics">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4zm2.5 2.1h-15V5h15v14.1zm0-16.1h-15c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                            </svg>
+                        </span>
+                        <span>Analytics</span>
+                    </div>
+                    <div class="nav-item" data-view="comparison">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/>
+                                <path d="M9 3L5 6.99h8L9 3zM16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/>
+                            </svg>
+                        </span>
+                        <span>Compare</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-title">Quick Filters</div>
+                    <div class="nav-item" onclick="applyQuickFilter('top-performers')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                            </svg>
+                        </span>
+                        <span>Top Performers</span>
+                    </div>
+                    <div class="nav-item" onclick="applyQuickFilter('high-win-rate')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </span>
+                        <span>High Win Rate</span>
+                    </div>
+                    <div class="nav-item" onclick="applyQuickFilter('low-drawdown')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                            </svg>
+                        </span>
+                        <span>Low Drawdown</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <span>Theme</span>
+                <span class="theme-icon" id="themeIcon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>XAUUSD Trading Strategies</h1>
+                <p>Advanced analytics and performance insights for 468 Gold trading strategies</p>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="dashboard-grid" id="dashboardStats">
+                <div class="stat-card">
+                    <div class="stat-icon profit">💰</div>
+                    <div class="stat-label">Avg Total Profit</div>
+                    <div class="stat-value" id="avgProfit">$0</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span>Best: <span id="maxProfit">$0</span></span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon win-rate">🎯</div>
+                    <div class="stat-label">Avg Win Rate</div>
+                    <div class="stat-value" id="avgWinRate">0%</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span>Best: <span id="maxWinRate">0%</span></span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon strategies">📚</div>
+                    <div class="stat-label">Total Strategies</div>
+                    <div class="stat-value"><span id="totalStrategies">468</span></div>
+                    <div class="stat-change">
+                        <span>Showing: <span id="displayedStrategies">0</span></span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon sharpe">📐</div>
+                    <div class="stat-label">Avg Sharpe Ratio</div>
+                    <div class="stat-value" id="avgSharpe">0</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span>Best: <span id="maxSharpe">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section" id="chartsSection">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Profit Distribution</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="profitChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Win Rate vs Profit Factor</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="scatterChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Performance Metrics</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Drawdown Analysis</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="drawdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="controls-section">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input
+                        type="text"
+                        class="search-box"
+                        id="searchBox"
+                        placeholder="Search strategies by name, indicators (RSI, EMA, MACD, Bollinger)..."
+                    >
+                </div>
+
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Sort By</label>
+                        <select class="filter-select" id="sortBy">
+                            <option value="profit">Total Profit (High to Low)</option>
+                            <option value="winRate">Win Rate (High to Low)</option>
+                            <option value="profitFactor">Profit Factor (High to Low)</option>
+                            <option value="sharpe">Sharpe Ratio (High to Low)</option>
+                            <option value="drawdown">Max Drawdown (Low to High)</option>
+                            <option value="trades">Total Trades</option>
+                            <option value="id">Strategy ID</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Min Win Rate (%)</label>
+                        <input type="number" class="filter-input" id="minWinRate" min="0" max="100" step="1" placeholder="e.g., 30">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Min Profit ($)</label>
+                        <input type="number" class="filter-input" id="minProfit" min="0" step="100" placeholder="e.g., 1000">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Min Profit Factor</label>
+                        <input type="number" class="filter-input" id="minProfitFactor" min="0" step="0.1" placeholder="e.g., 1.5">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Max Drawdown (%)</label>
+                        <input type="number" class="filter-input" id="maxDrawdown" min="0" max="100" step="0.5" placeholder="e.g., 5">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Min Sharpe Ratio</label>
+                        <input type="number" class="filter-input" id="minSharpe" min="0" step="0.1" placeholder="e.g., 2.0">
+                    </div>
+                </div>
+
+                <div class="filter-tags" id="filterTags"></div>
+            </div>
+
+            <!-- Strategies List -->
+            <div class="strategies-header">
+                <h2>Strategies (<span id="strategyCount">0</span>)</h2>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="cards">📇 Cards</button>
+                    <button class="view-btn" data-view="compact">📋 Compact</button>
+                </div>
+            </div>
+
+            <div id="results">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading strategies...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Comparison Bar -->
+    <div class="comparison-bar" id="comparisonBar">
+        <div class="comparison-content">
+            <div>
+                <strong><span id="compareCount">0</span> strategies selected</strong>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearComparison()">Clear</button>
+                <button class="btn btn-primary" onclick="showComparison()">Compare</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let strategies = [];
+        let filteredStrategies = [];
+        let comparedStrategies = new Set();
+        let charts = {};
+
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+
+            // Update theme icon
+            const themeIcon = document.getElementById('themeIcon');
+            if (newTheme === 'light') {
+                themeIcon.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>`;
+            } else {
+                themeIcon.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+                </svg>`;
+            }
+
+            // Update charts with new theme
+            Object.values(charts).forEach(chart => {
+                if (chart) {
+                    updateChartTheme(chart);
+                }
+            });
+        }
+
+        function updateChartTheme(chart) {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+            const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+
+            chart.options.scales && Object.keys(chart.options.scales).forEach(scaleKey => {
+                if (chart.options.scales[scaleKey].ticks) {
+                    chart.options.scales[scaleKey].ticks.color = textColor;
+                }
+                if (chart.options.scales[scaleKey].grid) {
+                    chart.options.scales[scaleKey].grid.color = gridColor;
+                }
+            });
+
+            if (chart.options.plugins && chart.options.plugins.legend) {
+                chart.options.plugins.legend.labels.color = textColor;
+            }
+
+            chart.update();
+        }
+
+        // Load strategies
+        fetch('strategies_index.json')
+            .then(response => response.json())
+            .then(data => {
+                strategies = data;
+                filterAndDisplay();
+                createCharts();
+            })
+            .catch(error => {
+                document.getElementById('results').innerHTML =
+                    '<div class="loading">Error loading strategies: ' + error + '</div>';
+            });
+
+        // Parse numeric values
+        function parseValue(str) {
+            if (!str) return 0;
+            return parseFloat(str.replace(/[$,%]/g, ''));
+        }
+
+        // Quick filters
+        function applyQuickFilter(type) {
+            switch(type) {
+                case 'top-performers':
+                    document.getElementById('minProfit').value = '2000';
+                    document.getElementById('minProfitFactor').value = '1.5';
+                    break;
+                case 'high-win-rate':
+                    document.getElementById('minWinRate').value = '35';
+                    break;
+                case 'low-drawdown':
+                    document.getElementById('maxDrawdown').value = '3';
+                    break;
+            }
+            filterAndDisplay();
+        }
+
+        // Filter and display strategies
+        function filterAndDisplay() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const minWinRate = parseFloat(document.getElementById('minWinRate').value) || 0;
+            const minProfit = parseFloat(document.getElementById('minProfit').value) || 0;
+            const minProfitFactor = parseFloat(document.getElementById('minProfitFactor').value) || 0;
+            const maxDrawdown = parseFloat(document.getElementById('maxDrawdown').value) || 100;
+            const minSharpe = parseFloat(document.getElementById('minSharpe').value) || 0;
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredStrategies = strategies.filter(strategy => {
+                const winRate = parseValue(strategy.win_rate);
+                const profit = parseValue(strategy.total_profit);
+                const profitFactor = parseValue(strategy.profit_factor);
+                const drawdown = parseValue(strategy.max_drawdown);
+                const sharpe = parseValue(strategy.sharpe_ratio);
+
+                const matchesSearch = !searchTerm ||
+                    strategy.name.toLowerCase().includes(searchTerm) ||
+                    strategy.id.toLowerCase().includes(searchTerm) ||
+                    strategy.raw_content.toLowerCase().includes(searchTerm);
+
+                return matchesSearch &&
+                    winRate >= minWinRate &&
+                    profit >= minProfit &&
+                    profitFactor >= minProfitFactor &&
+                    drawdown <= maxDrawdown &&
+                    sharpe >= minSharpe;
+            });
+
+            // Sort strategies
+            filteredStrategies.sort((a, b) => {
+                let aVal, bVal;
+                switch(sortBy) {
+                    case 'profit':
+                        return parseValue(b.total_profit) - parseValue(a.total_profit);
+                    case 'winRate':
+                        return parseValue(b.win_rate) - parseValue(a.win_rate);
+                    case 'profitFactor':
+                        return parseValue(b.profit_factor) - parseValue(a.profit_factor);
+                    case 'sharpe':
+                        return parseValue(b.sharpe_ratio) - parseValue(a.sharpe_ratio);
+                    case 'drawdown':
+                        return parseValue(a.max_drawdown) - parseValue(b.max_drawdown);
+                    case 'trades':
+                        return parseValue(b.total_trades) - parseValue(a.total_trades);
+                    case 'id':
+                        return parseInt(a.id) - parseInt(b.id);
+                    default:
+                        return 0;
+                }
+            });
+
+            displayStrategies();
+            updateStats();
+            updateFilterTags();
+            updateCharts();
+        }
+
+        // Display strategies
+        function displayStrategies() {
+            const resultsDiv = document.getElementById('results');
+            document.getElementById('strategyCount').textContent = filteredStrategies.length;
+
+            if (filteredStrategies.length === 0) {
+                resultsDiv.innerHTML = '<div class="loading">No strategies found. Try adjusting your filters.</div>';
+                return;
+            }
+
+            const html = filteredStrategies.slice(0, 50).map((strategy, index) => {
+                const profit = parseValue(strategy.total_profit);
+                const profitClass = profit > 0 ? 'positive' : 'negative';
+                const isTopPerformer = index < 10;
+
+                const buyRulesHTML = strategy.buy_rules && strategy.buy_rules.length > 0
+                    ? strategy.buy_rules.map(rule => `<div class="rule-item">${rule}</div>`).join('')
+                    : '<div class="rule-item">No specific rules parsed</div>';
+
+                const sellRulesHTML = strategy.sell_rules && strategy.sell_rules.length > 0
+                    ? strategy.sell_rules.map(rule => `<div class="rule-item">${rule}</div>`).join('')
+                    : '<div class="rule-item">No specific rules parsed</div>';
+
+                return `
+                    <div class="strategy-card" onclick="toggleCard(this)">
+                        <input type="checkbox" class="compare-checkbox" onclick="toggleCompare(event, '${strategy.id}')" ${comparedStrategies.has(strategy.id) ? 'checked' : ''}>
+
+                        <div class="strategy-header-row">
+                            <div class="strategy-title">
+                                ${strategy.name}
+                                ${isTopPerformer ? '<span class="strategy-badge badge-top">⭐ Top 10</span>' : ''}
+                            </div>
+                            <div class="strategy-badge badge-id">#${strategy.id}</div>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <div class="metric-label">Total Profit</div>
+                                <div class="metric-value ${profitClass}">${strategy.total_profit}</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Win Rate</div>
+                                <div class="metric-value">${strategy.win_rate}</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Profit Factor</div>
+                                <div class="metric-value">${strategy.profit_factor}</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Sharpe Ratio</div>
+                                <div class="metric-value">${strategy.sharpe_ratio}</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Max Drawdown</div>
+                                <div class="metric-value">${strategy.max_drawdown}</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Total Trades</div>
+                                <div class="metric-value">${strategy.total_trades}</div>
+                            </div>
+                        </div>
+
+                        <div class="strategy-details">
+                            <div class="details-section">
+                                <div class="risk-box">
+                                    <h4>⚠️ Risk Management</h4>
+                                    <div class="risk-grid">
+                                        <div class="risk-item"><strong>Stop Loss:</strong> ${strategy.stop_loss}</div>
+                                        <div class="risk-item"><strong>Take Profit:</strong> ${strategy.take_profit}</div>
+                                        <div class="risk-item"><strong>TimeFrame:</strong> ${strategy.timeframe}</div>
+                                    </div>
+                                </div>
+
+                                <div class="rules-grid">
+                                    <div class="rules-column">
+                                        <h4>📈 Buy Signal Rules</h4>
+                                        ${buyRulesHTML}
+                                    </div>
+                                    <div class="rules-column">
+                                        <h4>📉 Sell Signal Rules</h4>
+                                        ${sellRulesHTML}
+                                    </div>
+                                </div>
+
+                                <div class="metrics-grid">
+                                    <div class="metric-box">
+                                        <div class="metric-label">Win Trades</div>
+                                        <div class="metric-value positive">${strategy.winning_trades}</div>
+                                    </div>
+                                    <div class="metric-box">
+                                        <div class="metric-label">Loss Trades</div>
+                                        <div class="metric-value negative">${strategy.losing_trades}</div>
+                                    </div>
+                                    <div class="metric-box">
+                                        <div class="metric-label">Avg Win</div>
+                                        <div class="metric-value">${strategy.average_win}</div>
+                                    </div>
+                                    <div class="metric-box">
+                                        <div class="metric-label">Avg Loss</div>
+                                        <div class="metric-value">${strategy.average_loss}</div>
+                                    </div>
+                                    <div class="metric-box">
+                                        <div class="metric-label">Win/Loss Ratio</div>
+                                        <div class="metric-value">${strategy.win_loss_ratio}</div>
+                                    </div>
+                                </div>
+
+                                <div class="action-buttons">
+                                    <button class="btn btn-primary" onclick="downloadStrategy(event, '${strategy.id}')">
+                                        ⬇️ Download Files
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="viewDetails(event, '${strategy.id}')">
+                                        📊 View Full Analysis
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            resultsDiv.innerHTML = html;
+
+            if (filteredStrategies.length > 50) {
+                resultsDiv.innerHTML += `<div class="loading">Showing first 50 of ${filteredStrategies.length} strategies. Use filters to narrow down results.</div>`;
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const displayed = filteredStrategies;
+            document.getElementById('displayedStrategies').textContent = displayed.length;
+
+            if (displayed.length > 0) {
+                const avgProfit = displayed.reduce((sum, s) => sum + parseValue(s.total_profit), 0) / displayed.length;
+                const avgWinRate = displayed.reduce((sum, s) => sum + parseValue(s.win_rate), 0) / displayed.length;
+                const avgSharpe = displayed.reduce((sum, s) => sum + parseValue(s.sharpe_ratio), 0) / displayed.length;
+
+                const maxProfit = Math.max(...displayed.map(s => parseValue(s.total_profit)));
+                const maxWinRate = Math.max(...displayed.map(s => parseValue(s.win_rate)));
+                const maxSharpe = Math.max(...displayed.map(s => parseValue(s.sharpe_ratio)));
+
+                document.getElementById('avgProfit').textContent = '$' + avgProfit.toFixed(2);
+                document.getElementById('avgWinRate').textContent = avgWinRate.toFixed(2) + '%';
+                document.getElementById('avgSharpe').textContent = avgSharpe.toFixed(2);
+
+                document.getElementById('maxProfit').textContent = '$' + maxProfit.toFixed(2);
+                document.getElementById('maxWinRate').textContent = maxWinRate.toFixed(2) + '%';
+                document.getElementById('maxSharpe').textContent = maxSharpe.toFixed(2);
+            }
+        }
+
+        // Update filter tags
+        function updateFilterTags() {
+            const tags = [];
+            const minWinRate = document.getElementById('minWinRate').value;
+            const minProfit = document.getElementById('minProfit').value;
+            const minProfitFactor = document.getElementById('minProfitFactor').value;
+            const maxDrawdown = document.getElementById('maxDrawdown').value;
+            const minSharpe = document.getElementById('minSharpe').value;
+            const searchTerm = document.getElementById('searchBox').value;
+
+            if (searchTerm) tags.push({ label: `Search: "${searchTerm}"`, field: 'searchBox' });
+            if (minWinRate) tags.push({ label: `Win Rate ≥ ${minWinRate}%`, field: 'minWinRate' });
+            if (minProfit) tags.push({ label: `Profit ≥ $${minProfit}`, field: 'minProfit' });
+            if (minProfitFactor) tags.push({ label: `Profit Factor ≥ ${minProfitFactor}`, field: 'minProfitFactor' });
+            if (maxDrawdown) tags.push({ label: `Drawdown ≤ ${maxDrawdown}%`, field: 'maxDrawdown' });
+            if (minSharpe) tags.push({ label: `Sharpe ≥ ${minSharpe}`, field: 'minSharpe' });
+
+            const tagsHTML = tags.map(tag => `
+                <div class="filter-tag">
+                    ${tag.label}
+                    <span class="filter-tag-close" onclick="removeFilter('${tag.field}')">✕</span>
+                </div>
+            `).join('');
+
+            document.getElementById('filterTags').innerHTML = tagsHTML;
+        }
+
+        function removeFilter(field) {
+            document.getElementById(field).value = '';
+            filterAndDisplay();
+        }
+
+        // Create charts
+        function createCharts() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+            const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+
+            // Profit Distribution Chart
+            const profitRanges = {
+                '<$1000': 0,
+                '$1000-$1500': 0,
+                '$1500-$2000': 0,
+                '$2000-$2500': 0,
+                '>$2500': 0
+            };
+
+            strategies.forEach(s => {
+                const profit = parseValue(s.total_profit);
+                if (profit < 1000) profitRanges['<$1000']++;
+                else if (profit < 1500) profitRanges['$1000-$1500']++;
+                else if (profit < 2000) profitRanges['$1500-$2000']++;
+                else if (profit < 2500) profitRanges['$2000-$2500']++;
+                else profitRanges['>$2500']++;
+            });
+
+            charts.profitChart = new Chart(document.getElementById('profitChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(profitRanges),
+                    datasets: [{
+                        label: 'Number of Strategies',
+                        data: Object.values(profitRanges),
+                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+
+            // Scatter Chart: Win Rate vs Profit Factor
+            const scatterData = strategies.map(s => ({
+                x: parseValue(s.win_rate),
+                y: parseValue(s.profit_factor),
+                label: s.name
+            }));
+
+            charts.scatterChart = new Chart(document.getElementById('scatterChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Strategies',
+                        data: scatterData,
+                        backgroundColor: 'rgba(118, 75, 162, 0.6)',
+                        borderColor: 'rgba(118, 75, 162, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Win Rate: ${context.parsed.x.toFixed(2)}%, Profit Factor: ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Profit Factor', color: textColor },
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            title: { display: true, text: 'Win Rate (%)', color: textColor },
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+
+            // Radar Chart: Top 5 Strategies
+            const top5 = [...strategies]
+                .sort((a, b) => parseValue(b.total_profit) - parseValue(a.total_profit))
+                .slice(0, 5);
+
+            charts.radarChart = new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Profit', 'Win Rate', 'Profit Factor', 'Sharpe', 'Low Drawdown'],
+                    datasets: top5.map((s, i) => ({
+                        label: `Strategy ${s.id}`,
+                        data: [
+                            (parseValue(s.total_profit) / 3000) * 100,
+                            parseValue(s.win_rate),
+                            (parseValue(s.profit_factor) / 2) * 100,
+                            (parseValue(s.sharpe_ratio) / 3) * 100,
+                            100 - parseValue(s.max_drawdown) * 10
+                        ],
+                        backgroundColor: `hsla(${i * 72}, 70%, 60%, 0.2)`,
+                        borderColor: `hsla(${i * 72}, 70%, 60%, 1)`,
+                        borderWidth: 2
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { color: textColor, backdropColor: 'transparent' },
+                            grid: { color: gridColor },
+                            pointLabels: { color: textColor }
+                        }
+                    }
+                }
+            });
+
+            // Drawdown Chart
+            const drawdownRanges = {
+                '<2%': 0,
+                '2-3%': 0,
+                '3-4%': 0,
+                '4-5%': 0,
+                '>5%': 0
+            };
+
+            strategies.forEach(s => {
+                const dd = parseValue(s.max_drawdown);
+                if (dd < 2) drawdownRanges['<2%']++;
+                else if (dd < 3) drawdownRanges['2-3%']++;
+                else if (dd < 4) drawdownRanges['3-4%']++;
+                else if (dd < 5) drawdownRanges['4-5%']++;
+                else drawdownRanges['>5%']++;
+            });
+
+            charts.drawdownChart = new Chart(document.getElementById('drawdownChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(drawdownRanges),
+                    datasets: [{
+                        data: Object.values(drawdownRanges),
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update charts with filtered data if needed
+        }
+
+        // Toggle card expansion
+        function toggleCard(card) {
+            if (event.target.type === 'checkbox' || event.target.tagName === 'BUTTON') return;
+            card.classList.toggle('expanded');
+        }
+
+        // Comparison functions
+        function toggleCompare(event, id) {
+            event.stopPropagation();
+            if (comparedStrategies.has(id)) {
+                comparedStrategies.delete(id);
+            } else {
+                comparedStrategies.add(id);
+            }
+            updateComparisonBar();
+        }
+
+        function updateComparisonBar() {
+            const bar = document.getElementById('comparisonBar');
+            const count = comparedStrategies.size;
+            document.getElementById('compareCount').textContent = count;
+
+            if (count > 0) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function clearComparison() {
+            comparedStrategies.clear();
+            updateComparisonBar();
+            document.querySelectorAll('.compare-checkbox').forEach(cb => cb.checked = false);
+        }
+
+        function showComparison() {
+            if (comparedStrategies.size < 2) {
+                alert('Please select at least 2 strategies to compare');
+                return;
+            }
+            alert('Comparison feature coming soon! Selected: ' + Array.from(comparedStrategies).join(', '));
+        }
+
+        // Download strategy
+        function downloadStrategy(event, id) {
+            event.stopPropagation();
+            const filename = `FxMath_Free_XAUUSD_${id}.zip`;
+            const link = document.createElement('a');
+            link.href = `XAUUSD/${filename}`;
+            link.download = filename;
+            link.click();
+        }
+
+        function viewDetails(event, id) {
+            event.stopPropagation();
+            alert('Detailed analysis view coming soon for Strategy #' + id);
+        }
+
+        // Event listeners
+        document.getElementById('searchBox').addEventListener('input', filterAndDisplay);
+        document.getElementById('sortBy').addEventListener('change', filterAndDisplay);
+        document.getElementById('minWinRate').addEventListener('input', filterAndDisplay);
+        document.getElementById('minProfit').addEventListener('input', filterAndDisplay);
+        document.getElementById('minProfitFactor').addEventListener('input', filterAndDisplay);
+        document.getElementById('maxDrawdown').addEventListener('input', filterAndDisplay);
+        document.getElementById('minSharpe').addEventListener('input', filterAndDisplay);
+
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
