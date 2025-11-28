@@ -1126,6 +1126,96 @@
             line-height: 1.6;
         }
 
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            color: white;
+        }
+
+        .page-number {
+            min-width: 40px;
+            justify-content: center;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-size-selector label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .page-size-selector select {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-size-selector select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
         @media (max-width: 768px) {
             .app-container {
                 flex-direction: column;
@@ -1163,6 +1253,16 @@
 
             .footer-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .pagination-controls {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -1413,6 +1513,46 @@
                 </div>
             </div>
 
+            <!-- Pagination -->
+            <div class="pagination-container" id="paginationContainer" style="display: none;">
+                <div class="page-size-selector">
+                    <label>Show:</label>
+                    <select id="pageSize" onchange="changePageSize()">
+                        <option value="20">20 per page</option>
+                        <option value="50" selected>50 per page</option>
+                        <option value="100">100 per page</option>
+                        <option value="200">200 per page</option>
+                    </select>
+                </div>
+
+                <div class="pagination-info">
+                    Showing <strong><span id="showingStart">1</span>-<span id="showingEnd">50</span></strong>
+                    of <strong><span id="totalStrategiesCount">468</span></strong> strategies
+                </div>
+
+                <div class="pagination-controls">
+                    <button class="pagination-btn" onclick="goToFirstPage()" id="firstPageBtn">
+                        <span>⏮</span>
+                        <span>First</span>
+                    </button>
+                    <button class="pagination-btn" onclick="previousPage()" id="prevPageBtn">
+                        <span>◀</span>
+                        <span>Prev</span>
+                    </button>
+
+                    <div id="pageNumbers" style="display: flex; gap: 8px;"></div>
+
+                    <button class="pagination-btn" onclick="nextPage()" id="nextPageBtn">
+                        <span>Next</span>
+                        <span>▶</span>
+                    </button>
+                    <button class="pagination-btn" onclick="goToLastPage()" id="lastPageBtn">
+                        <span>Last</span>
+                        <span>⏭</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Footer -->
             <footer class="footer">
                 <div class="footer-content">
@@ -1628,6 +1768,9 @@
         let filteredStrategies = [];
         let comparedStrategies = new Set();
         let charts = {};
+        let currentPage = 1;
+        let pageSize = 50;
+        let totalPages = 1;
 
         // Theme toggle
         function toggleTheme() {
@@ -1766,6 +1909,9 @@
                 }
             });
 
+            // Reset to first page when filters change
+            currentPage = 1;
+
             displayStrategies();
             updateStats();
             updateFilterTags();
@@ -1779,10 +1925,18 @@
 
             if (filteredStrategies.length === 0) {
                 resultsDiv.innerHTML = '<div class="loading">No strategies found. Try adjusting your filters.</div>';
+                document.getElementById('paginationContainer').style.display = 'none';
                 return;
             }
 
-            const html = filteredStrategies.slice(0, 50).map((strategy, index) => {
+            // Calculate pagination
+            totalPages = Math.ceil(filteredStrategies.length / pageSize);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredStrategies.length);
+            const displayedStrategies = filteredStrategies.slice(startIndex, endIndex);
+
+            const html = displayedStrategies.map((strategy, index) => {
+                const globalIndex = startIndex + index;
                 const profit = parseValue(strategy.total_profit);
                 const profitClass = profit > 0 ? 'positive' : 'negative';
                 const isTopPerformer = index < 10;
@@ -1895,9 +2049,93 @@
 
             resultsDiv.innerHTML = html;
 
-            if (filteredStrategies.length > 50) {
-                resultsDiv.innerHTML += `<div class="loading">Showing first 50 of ${filteredStrategies.length} strategies. Use filters to narrow down results.</div>`;
+            // Update pagination UI
+            updatePaginationUI();
+
+            // Scroll to top of results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Update pagination UI
+        function updatePaginationUI() {
+            if (filteredStrategies.length === 0) {
+                document.getElementById('paginationContainer').style.display = 'none';
+                return;
             }
+
+            document.getElementById('paginationContainer').style.display = 'flex';
+
+            const startIndex = (currentPage - 1) * pageSize + 1;
+            const endIndex = Math.min(currentPage * pageSize, filteredStrategies.length);
+
+            document.getElementById('showingStart').textContent = startIndex;
+            document.getElementById('showingEnd').textContent = endIndex;
+            document.getElementById('totalStrategiesCount').textContent = filteredStrategies.length;
+
+            // Update buttons state
+            document.getElementById('firstPageBtn').disabled = currentPage === 1;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+            document.getElementById('lastPageBtn').disabled = currentPage === totalPages;
+
+            // Generate page numbers
+            generatePageNumbers();
+        }
+
+        // Generate page number buttons
+        function generatePageNumbers() {
+            const pageNumbersDiv = document.getElementById('pageNumbers');
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            let html = '';
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-btn page-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            pageNumbersDiv.innerHTML = html;
+        }
+
+        // Pagination functions
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            displayStrategies();
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayStrategies();
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayStrategies();
+            }
+        }
+
+        function goToFirstPage() {
+            currentPage = 1;
+            displayStrategies();
+        }
+
+        function goToLastPage() {
+            currentPage = totalPages;
+            displayStrategies();
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSize').value);
+            currentPage = 1; // Reset to first page
+            displayStrategies();
         }
 
         // Update statistics
