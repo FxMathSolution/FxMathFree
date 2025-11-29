@@ -2880,5 +2880,82 @@
             });
         });
     </script>
+
+    <!-- Chat Widget CSS -->
+    <link rel="stylesheet" href="widget/chat-widget.css">
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Chat Widget JS -->
+    <script src="widget/chat-widget-auto.js"></script>
+    <script src="widget/chat-widget.js"></script>
+    <script>
+        // CHAT WIDGET INITIALIZATION
+        // ⚠️ CONFIGURE YOUR BACKEND SERVER URLS BELOW ⚠️
+
+        // Wait for widget HTML to be created
+        setTimeout(() => {
+            // ========================================
+            // BACKEND SERVER CONFIGURATION
+            // ========================================
+            // Configured for: https://chat.fxmath.com
+
+            const BACKEND_API_URL = 'https://chat.fxmath.com';
+            const BACKEND_WS_URL = 'wss://chat.fxmath.com/ws';
+
+            // For local testing (uncomment to use):
+            // const BACKEND_API_URL = 'http://localhost:8000';
+            // const BACKEND_WS_URL = 'ws://localhost:8000/ws';
+
+            // ========================================
+
+            ChatWidget.init({
+                apiUrl: BACKEND_API_URL,
+                websocketUrl: BACKEND_WS_URL,
+                autoOpen: true  // Auto-open on page load
+            });
+
+            // Auto-open chat on page load after a short delay
+            setTimeout(() => {
+                const chatWindow = document.getElementById('chat-window');
+                const chatButton = document.getElementById('chat-button');
+                if (chatWindow && chatButton) {
+                    chatWindow.style.display = 'block';
+                    chatButton.classList.add('active');
+                }
+            }, 1000);
+
+            // Override ChatWidget to support auto-open on server message
+            const originalInit = ChatWidget.init;
+            ChatWidget.autoOpenOnMessage = function() {
+                const chatWindow = document.getElementById('chat-window');
+                const chatButton = document.getElementById('chat-button');
+                if (chatWindow && chatButton) {
+                    if (chatWindow.style.display === 'none') {
+                        chatWindow.style.display = 'block';
+                        chatButton.classList.add('active');
+                    }
+                }
+            };
+
+            // Listen for incoming messages and auto-open
+            if (window.ChatWidget && window.ChatWidget.ws) {
+                const originalOnMessage = window.ChatWidget.ws.onmessage;
+                window.ChatWidget.ws.onmessage = function(event) {
+                    if (originalOnMessage) originalOnMessage.call(this, event);
+
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'message' && data.sender === 'agent') {
+                            ChatWidget.autoOpenOnMessage();
+                        }
+                    } catch (e) {
+                        console.log('Chat message received');
+                    }
+                };
+            }
+        }, 100);
+    </script>
 </body>
 </html>
